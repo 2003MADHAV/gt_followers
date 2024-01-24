@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-cloud/1.2.5/d3.layout.cloud.min.js"></script>
+ <link rel="stylesheet" href="https://unpkg.com/mvp.css">
+</head>
+<body>
+ <header>
+        <h1>Data Viz - Github followers of Dr. R. Raja Subramanian</h1>
+        <p><b>No class names, no frameworks,</b> just <em>semantic</em> HTML and <mark>you're done</mark>.</p>
+        <br>
+        <p><a download="mvp.html" href="./mvp.html" target="_blank"><i>Download HTML &nearr;</i></a><a
+                download="mvp.css" href="./mvp.css" target="_blank"><b>Download MVP.css (9kb) &nearr;</b></a></p>
+        <br><br>
+        <p><sup>PRO TIP</sup> Add this code to a new HTML
+            file:<br><br><code id="currentVersion" onclick="copyText('currentVersion');">&lt;link rel="stylesheet" href="https://unpkg.com/mvp.css"&gt; <img src="./img/icon-copy.png" height="15" width="15" style="position: relative; top: 3px;"></code></p>
+    </header>
+    <main>
+        <section>
+ <header>
+                <h2>WORD CLOUD - What are his followers most interested in?</h2>
+                <p>Word cloud obtained from the repo names of his followers</p>
+            </header>
+    <div id="word-cloud">
+ </section>
+         <section>
+ <header>
+                <h2>WORD CHART - What are his followers most interested in?</h2>
+                <p>Top 20 Words</p>
+            </header>
+<svg width="600" height="400" id="wordChart"></svg>
+ </section>
+</div>
+ </main>
+</body>
+<script>
+
+var colorScale = d3.scaleOrdinal(d3.schemeCategory10); // Predefined color scale
+ var pastelColorScale = d3.scaleOrdinal()
+    .range([
+ /* CSS HEX */
+"#001219ff",
+"#005f73ff",
+"#0a9396ff",
+"#94d2bdff",
+"#e9d8a6ff",
+"#ee9b00ff",
+"#ca6702ff",
+"#bb3e03ff",
+"#ae2012ff",
+"#9b2226ff"
+    ]);
+function drawWordChart(topWords){
+    var svg = d3.select("#wordChart"),
+        margin = {top: 20, right: 20, bottom: 30, left: 40},
+        width = +svg.attr("width") - margin.left - margin.right,
+        height = +svg.attr("height") - margin.top - margin.bottom;
+
+    var g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+var x = d3.scaleBand()
+          .rangeRound([0, width])
+          .padding(0.1)
+          .domain(topWords.map(d => d.word));
+
+var y = d3.scaleLinear()
+          .rangeRound([height, 0])
+          .domain([0, d3.max(topWords, d => d.count)]);
+
+g.append("g")
+ .attr("class", "axis axis--x")
+ .attr("transform", "translate(0," + height + ")")
+ .call(d3.axisBottom(x));
+
+g.append("g")
+ .attr("class", "axis axis--y")
+ .call(d3.axisLeft(y).ticks(10, "s"))
+ .append("text")
+ .attr("transform", "rotate(-90)")
+ .attr("y", 6)
+ .attr("dy", "0.71em")
+ .attr("text-anchor", "end")
+ .text("Frequency");
+
+    console.log(topWords)
+g.selectAll(".bar")
+ .data(topWords)
+ .enter().append("rect")
+ .attr("class", "bar")
+ .attr("x", d => x(d.word))
+ .attr("y", d => y(d.count))
+ .attr("width", x.bandwidth())
+ .attr("height", d => height - y(d.count));
+}
+
+ function drawWordCloud(wordCloudData) {
+    var width = 600;
+    var height = 600;
+    var layout = d3.layout.cloud()
+        .size([width, height])
+        .words(wordCloudData.map(function(d) {
+            return {text: d.word, size: d.size * 10};
+        }))
+        .padding(5)
+        .rotate(0)
+        .fontSize(d => d.size)
+        .on("end", draw);
+
+    layout.start();
+
+    function draw(words) {
+        d3.select("#word-cloud").append("svg")
+            .attr("width", layout.size()[0])
+            .attr("height", layout.size()[1])
+            .append("g")
+            .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
+            .selectAll("text")
+            .data(words)
+            .enter().append("text")
+            .style("font-size", d => d.size + "px")
+            .style("fill", function(d) { return pastelColorScale(d.size); }) // Apply color
+            .attr("text-anchor", "middle")
+            .attr("transform", d => "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")")
+            .text(d => d.text);
+    }
+}
+
+
+function countWordOccurrences(wordsArray) {
+    var count = {};
+    wordsArray.forEach(function(word) {
+        word = word.toLowerCase(); // Convert to lower case
+        count[word] = (count[word] || 0) + 1;
+    });
+    return count;
+}
+
+// Example usage:
+//var words = ["Hello", "World", "hello", "world", "hello"];
+ fetch('/words.json')
+    .then(response => response.json())
+    .then(words => {
+        // Process your words here
+        var wordCounts = countWordOccurrences(words);
+        console.log(wordCounts)
+
+        var wordCloudData = Object.keys(wordCounts).map(function(key) {
+            return { word: key, size: wordCounts[key] };
+        });
+        drawWordCloud(wordCloudData)
+
+        const wordCountsData = wordCounts => Object.keys(wordCounts).sort().reduce((acc, key) => (acc[key] = wordCounts[key], acc), {});
+        console.log(wordCountsData)
+        var topWords = wordCountsData.slice(0, 20); // Get top 20 words
+        drawWordChart(topWords)
+    })
+    .catch(error => console.error('Error fetching data:', error));
+
+//console.log(wordCounts); // Output will be something like: { hello: 3, world: 2 }
+
+
+
+
+// Example usage with your data
+//drawWordCloud(wordCloudData);
+</script>
+</html>
