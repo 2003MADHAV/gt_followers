@@ -1,37 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Analyzing Github followers of Dr. R. Raja Subramanian</title>
-<script src="https://d3js.org/d3.v5.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-cloud/1.2.5/d3.layout.cloud.min.js"></script>
- <link rel="stylesheet" href="https://unpkg.com/mvp.css">
-</head>
-<body>
- <header>
-        <h1>Data Viz - Github followers of Dr. R. Raja Subramanian</h1>
-    </header>
-    <main>
-        <section>
- <header>
-                <h2>What are his followers most interested in?</h2>
-                <h3>#1 - WORD CLOUD </h3>
-                <p>Word cloud obtained from the repo names of his followers</p>
-            </header>
-    <div id="word-cloud">
- </section>
-         <section>
- <header>
-                <h3>#2 - WORD CHART</h3>
-                <p>Top 20 Words</p>
-            </header>
-<svg width="600" height="600" id="wordChart"></svg>
- </section>
-</div>
- </main>
+    <head>
+        <meta charset="UTF-8">
+        <title>Analyzing Github followers of Dr. R. Raja Subramanian</title>
+        <script src="https://d3js.org/d3.v5.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-cloud/1.2.5/d3.layout.cloud.min.js"></script>
+        <link rel="stylesheet" href="https://unpkg.com/mvp.css">
+    </head>
+    <body>
+        <header>
+            <h1>Data Viz - Github followers of Dr. R. Raja Subramanian</h1>
+        </header>
+        <main>
+            <article>
+                    <h2>What are his followers most interested in?</h2>
+                    <h3>#1 - WORD CLOUD </h3>
+                    <p>Word cloud obtained from the repo names of his followers</p>
+                <div id="word-cloud">
+                </div>
+            </article>
+            <article>
+                    <h3>#2 - WORD CHART</h3>
+                    <p>Top 20 Words</p>
+                <svg width="600" height="600" id="wordChart"></svg>
+            </article>
+        </main>
 </body>
 <script>
 
+// Custom Color Scales
 var colorScale = d3.scaleOrdinal(d3.schemeCategory10); // Predefined color scale
  var pastelColorScale = d3.scaleOrdinal()
     .range([
@@ -94,47 +91,6 @@ var colorScale = d3.scaleOrdinal(d3.schemeCategory10); // Predefined color scale
         .call(d3.axisLeft(yScale));
 }
 
-function drawWordChart(topWords){
-    var svg = d3.select("#wordChart"),
-        margin = {top: 20, right: 20, bottom: 30, left: 40},
-        width = +svg.attr("width") - margin.left - margin.right,
-        height = +svg.attr("height") - margin.top - margin.bottom;
-
-    var g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-var x = d3.scaleBand()
-          .rangeRound([0, width])
-          .padding(0.1)
-          .domain(topWords.map(d => d.word));
-
-var y = d3.scaleLinear()
-          .rangeRound([height, 0])
-          .domain([0, d3.max(topWords, d => d.count)]);
-
-g.append("g")
- .attr("class", "axis axis--x")
- .attr("transform", "translate(0," + height + ")")
- .call(d3.axisBottom(x));
-
-g.append("g")
- .attr("class", "axis axis--y")
- .call(d3.axisLeft(y).ticks(10, "s"))
- .append("text")
- .attr("transform", "rotate(-90)")
- .attr("y", 6)
- .attr("dy", "0.71em")
- .attr("text-anchor", "end")
- .text("Frequency");
-
-g.selectAll(".bar")
- .data(topWords)
- .enter().append("rect")
- .attr("class", "bar")
- .attr("x", d => x(d.word))
- .attr("y", d => y(d.count))
- .attr("width", x.bandwidth())
- .attr("height", d => height - y(d.count));
-}
 
  function drawWordCloud(wordCloudData) {
     var width = 600;
@@ -178,8 +134,7 @@ function countWordOccurrences(wordsArray) {
     return count;
 }
 
-// Example usage:
-//var words = ["Hello", "World", "hello", "world", "hello"];
+// Fetch Data and create charts
  fetch('/gt_followers/words.json')
     .then(response => response.json())
     .then(words => {
@@ -199,13 +154,5 @@ function countWordOccurrences(wordsArray) {
         createBarChart(sortedWordCounts)
     })
     .catch(error => console.error('Error fetching data:', error));
-
-//console.log(wordCounts); // Output will be something like: { hello: 3, world: 2 }
-
-
-
-
-// Example usage with your data
-//drawWordCloud(wordCloudData);
 </script>
 </html>
