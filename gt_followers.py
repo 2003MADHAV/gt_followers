@@ -31,7 +31,7 @@ def save_to_json(data, filename):
 
 
 # Replace 'your_username' with the GitHub username
-username = "RajaSubramanian10"
+username = "StarkDroid"
 
-github_data = get_github_data("RajaSubramanian10")
+github_data = get_github_data(username)
 save_to_json(github_data, "github_followers_data.json")
